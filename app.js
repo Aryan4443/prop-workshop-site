@@ -26,17 +26,49 @@
   // ---------- sign-in ----------
   const isAllowed = (email) => (email || '').toLowerCase().endsWith('@' + CFG.emailDomain);
 
+  // Sign in with a code typed from the email. Links get used up by CSULB's email link scanner.
+  let sending = false;
   $('signin-form').addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (sending) return;
     const email = $('email').value.trim();
     const msg = $('signin-msg');
     if (!isAllowed(email)) { msg.className = 'msg err'; msg.textContent = 'Use your @' + CFG.emailDomain + ' email.'; return; }
+    sending = true;
     $('signin-btn').disabled = true;
     msg.className = 'msg'; msg.textContent = 'Sending…';
     const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
-    $('signin-btn').disabled = false;
-    if (error) { msg.className = 'msg err'; msg.textContent = error.status === 429 ? 'Too many sign-in emails right now. Try again in a few minutes.' : 'Could not send the link: ' + error.message; return; }
-    msg.textContent = 'Check your inbox for a sign-in link from Supabase and open it on this device.';
+    sending = false;
+    if (error) {
+      msg.className = 'msg err';
+      msg.textContent = error.status === 429
+        ? 'Too many sign-in emails were sent recently. If you already have a code, enter it below; otherwise wait a few minutes and try again.'
+        : 'Could not send the code: ' + error.message;
+      if (error.status === 429) showCodeForm();
+      setTimeout(() => { $('signin-btn').disabled = false; }, 60000);
+      return;
+    }
+    msg.textContent = 'Code sent to ' + email + '. Check your inbox (and junk folder).';
+    setTimeout(() => { $('signin-btn').disabled = false; }, 60000);
+    showCodeForm();
+  });
+  function showCodeForm() {
+    $('signin-form').hidden = true;
+    $('code-form').hidden = false;
+    $('code').focus();
+  }
+  $('code-back').addEventListener('click', () => {
+    $('code-form').hidden = true; $('signin-form').hidden = false; $('signin-msg').textContent = '';
+  });
+  $('code-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = $('signin-msg');
+    $('code-btn').disabled = true;
+    msg.className = 'msg'; msg.textContent = 'Checking…';
+    const { error } = await sb.auth.verifyOtp({ email: $('email').value.trim(), token: $('code').value.trim(), type: 'email' });
+    $('code-btn').disabled = false;
+    if (error) { msg.className = 'msg err'; msg.textContent = 'That code did not work: ' + error.message + '. Check for typos, or request a new code.'; return; }
+    msg.textContent = '';
   });
   $('signout').addEventListener('click', () => sb.auth.signOut());
 

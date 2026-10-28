@@ -23,14 +23,23 @@
 
   <section class="panel signin" id="signin" hidden>
     <h2>Sign in</h2>
-    <p class="sub">Use your CSULB email. We'll send you a sign-in link; open it on this device.</p>
+    <p class="sub">Use your CSULB email. We'll email you a sign-in code.</p>
     <form id="signin-form">
       <label for="email">CSULB email
         <input id="email" type="email" required autocomplete="email" placeholder="first.last@csulb.edu">
       </label>
-      <button type="submit" id="signin-btn">Send sign-in link</button>
-      <p class="msg" id="signin-msg" role="status"></p>
+      <button type="submit" id="signin-btn">Email me a code</button>
     </form>
+    <form id="code-form" hidden>
+      <label for="code">Code from the email <span class="hint">Type the code, don't click the link: CSULB's email scanner can use the link up before you do. The code works for one hour.</span>
+        <input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" maxlength="10" required placeholder="123456">
+      </label>
+      <div class="row">
+        <button type="submit" id="code-btn">Sign in</button>
+        <button type="button" class="ghost" id="code-back">Use a different email</button>
+      </div>
+    </form>
+    <p class="msg" id="signin-msg" role="status"></p>
   </section>
 
   <div id="app" hidden>
