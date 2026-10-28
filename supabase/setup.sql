@@ -94,3 +94,17 @@ create policy "csulb uploads own files" on storage.objects
   with check (bucket_id = 'workshop' and public.is_csulb()
               and (storage.foldername(name))[1] = 'uploads'
               and (storage.foldername(name))[2] = auth.uid()::text);
+
+-- Refuse any account whose email is not @csulb.edu, even when created outside the site.
+create or replace function public.only_csulb_signups() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  if lower(coalesce(new.email, '')) not like '%@csulb.edu' then
+    raise exception 'Only @csulb.edu accounts can be created.';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists only_csulb_signups on auth.users;
+create trigger only_csulb_signups before insert on auth.users
+  for each row execute function public.only_csulb_signups();
