@@ -23,21 +23,19 @@
 
   <section class="panel signin" id="signin" hidden>
     <h2>Sign in</h2>
-    <p class="sub">Use your CSULB email. We'll email you a sign-in code.</p>
+    <p class="sub">Sign in with your CSULB email and the password you chose. First time here? Pick Create account.</p>
     <form id="signin-form">
       <label for="email">CSULB email
-        <input id="email" type="email" required autocomplete="email" placeholder="first.last@csulb.edu">
+        <input id="email" type="email" required autocomplete="username" placeholder="first.last@csulb.edu">
       </label>
-      <button type="submit" id="signin-btn">Email me a code</button>
-    </form>
-    <form id="code-form" hidden>
-      <label for="code">Code from the email <span class="hint">Type the code, don't click the link: CSULB's email scanner can use the link up before you do. The code works for one hour.</span>
-        <input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" maxlength="10" required placeholder="123456">
+      <label for="password">Password <span class="hint" id="pw-hint">At least 8 characters.</span>
+        <input id="password" type="password" required minlength="8" autocomplete="current-password">
       </label>
       <div class="row">
-        <button type="submit" id="code-btn">Sign in</button>
-        <button type="button" class="ghost" id="code-back">Use a different email</button>
+        <button type="submit" id="signin-btn">Sign in</button>
+        <button type="button" class="ghost" id="signup-btn">Create account</button>
       </div>
+      <p class="hint">Forgot your password? Ask Aryan to reset it.</p>
     </form>
     <p class="msg" id="signin-msg" role="status"></p>
   </section>
