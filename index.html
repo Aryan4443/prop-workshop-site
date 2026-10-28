@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prop Workshop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Prop Workshop</h1>
+      <p class="sub">Send photos of any object. It's modelled by hand in Blender to match your photos, you get a review sheet with your photo next to the model, changes are made until you approve it, then you get a game-ready model to download.</p>
+    </div>
+    <div class="account" id="account" hidden>
+      <span id="who"></span>
+      <button type="button" class="ghost small" id="signout">Sign out</button>
+    </div>
+  </header>
+
+  <section class="panel signin" id="signin" hidden>
+    <h2>Sign in</h2>
+    <p class="sub">Use your CSULB email. We'll send you a sign-in link; open it on this device.</p>
+    <form id="signin-form">
+      <label for="email">CSULB email
+        <input id="email" type="email" required autocomplete="email" placeholder="first.last@csulb.edu">
+      </label>
+      <button type="submit" id="signin-btn">Send sign-in link</button>
+      <p class="msg" id="signin-msg" role="status"></p>
+    </form>
+  </section>
+
+  <div id="app" hidden>
+    <ol class="steps" aria-label="How a request moves">
+      <li><span class="n">1</span><b>Queued</b>Photos and notes received</li>
+      <li><span class="n">2</span><b>Building</b>Blender model being made</li>
+      <li><span class="n">3</span><b>Review</b>Compare sheet and 3D preview: approve or ask for changes</li>
+      <li><span class="n">4</span><b>Low-poly</b>Game model: under 2,000 triangles for small items, one material, one texture, URP-ready</li>
+      <li><span class="n">5</span><b>Done</b>Download FBX, texture and GLB</li>
+    </ol>
+
+    <div class="grid">
+      <div class="col">
+        <section class="panel" aria-labelledby="new-h">
+          <h2 id="new-h">New request</h2>
+          <form id="req-form">
+            <label for="f-name">Object name
+              <input id="f-name" type="text" required maxlength="80" placeholder="e.g. Brass hand mirror">
+            </label>
+            <div>
+              <span class="label">Photos <span class="hint">Front view first, then sides, back, top and close-ups of any text. Only the object is modelled; the background and anything around it are left out.</span></span>
+              <div class="photo-actions">
+                <button type="button" id="f-take">Take photo</button>
+                <button type="button" class="ghost" id="f-choose">Choose photos</button>
+              </div>
+              <input id="f-camera" class="visually-hidden" type="file" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
+              <input id="f-photos" class="visually-hidden" type="file" accept="image/*" multiple tabindex="-1" aria-hidden="true">
+            </div>
+            <div class="thumbs" id="f-thumbs"></div>
+            <p class="photo-count" id="f-count">No photos yet. On a phone, Take photo opens the camera; take one, then tap it again for the next angle.</p>
+            <label for="f-scan">3D scan <span class="hint">Optional, gives the exact size and shape. Scan the object with a free app such as Scaniverse, Polycam or KIRI Engine and export GLB (or USDZ, OBJ, PLY, STL), up to 50 MB. Keep the photos too: they show text and fine detail better.</span>
+              <input id="f-scan" type="file" accept=".glb,.usdz,.obj,.ply,.stl">
+            </label>
+            <div>
+              <span class="label">Real size in mm <span class="hint">Leave blank if unknown; we'll estimate.</span></span>
+              <div class="dims">
+                <input id="f-w" type="number" min="1" step="1" placeholder="Width" aria-label="Width in mm">
+                <input id="f-d" type="number" min="1" step="1" placeholder="Depth" aria-label="Depth in mm">
+                <input id="f-h" type="number" min="1" step="1" placeholder="Height" aria-label="Height in mm">
+              </div>
+            </div>
+            <label for="f-project">Project or use <span class="hint">Where the model will be used.</span>
+              <input id="f-project" type="text" maxlength="80" placeholder="e.g. German Kitchen, Imperial China XR">
+            </label>
+            <label for="f-output">What you need
+              <select id="f-output" aria-describedby="f-output-hint">
+                <option value="files">Model files (FBX + GLB with texture)</option>
+                <option value="unity">Unity asset: needs developer approval</option>
+                <option value="vr">Unity asset you can pick up in VR: needs developer approval</option>
+              </select>
+              <span class="hint" id="f-output-hint">Made automatically. You get the FBX, GLB and texture, ready to import into Unity yourself.</span>
+            </label>
+            <label class="check" for="f-aged"><input id="f-aged" type="checkbox"> Make it look old and worn</label>
+            <label for="f-notes">Notes <span class="hint">Material, colours, parts that open, what matters most. Every game model follows the VR requirements: under 2,000 triangles for small items, one material and one texture, Unity URP compatible. Ask here if you need an exception.</span>
+              <textarea id="f-notes" maxlength="2000" placeholder="e.g. Lid lifts off. Copy the blue glaze exactly; the crack on the rim doesn't matter."></textarea>
+            </label>
+            <button id="f-submit" type="submit">Send request</button>
+            <p class="msg" id="f-msg" role="status"></p>
+          </form>
+        </section>
+
+        <section class="panel" aria-labelledby="q-h">
+          <h2 id="q-h">Queue</h2>
+          <p class="empty" id="q-empty">Loading requests…</p>
+          <ul class="queue" id="queue"></ul>
+        </section>
+      </div>
+
+      <section class="panel" id="detail" aria-live="polite">
+        <h2>Review</h2>
+        <p class="empty">Pick a request in the queue to see its photos, review sheets and 3D model.</p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-labelledby="lb-title" hidden>
+  <div class="lb-bar">
+    <span class="lb-title" id="lb-title"></span>
+    <button type="button" id="lb-out" aria-label="Zoom out">−</button>
+    <span class="lb-zoom" id="lb-zoom" aria-live="polite">100%</span>
+    <button type="button" id="lb-in" aria-label="Zoom in">+</button>
+    <button type="button" id="lb-fit">Fit</button>
+    <button type="button" id="lb-full">100%</button>
+    <button type="button" id="lb-close">Close</button>
+  </div>
+  <div class="lb-stage" id="lb-stage"><img id="lb-img" alt=""></div>
+  <div class="lb-help">Scroll or pinch to zoom · drag to move · double-click for full size · Esc to close</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/environments/RoomEnvironment.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
