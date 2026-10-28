@@ -3,7 +3,7 @@
 
 -- Only signed-in people with a CSULB email may use the workshop.
 create or replace function public.is_csulb() returns boolean
-language sql stable as $$
+language sql stable set search_path = '' as $$
   select coalesce(lower(auth.jwt() ->> 'email') like '%@csulb.edu', false);
 $$;
 
